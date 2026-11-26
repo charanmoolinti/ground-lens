@@ -13,11 +13,13 @@ ENV/
 # Secrets and Local Configurations
 .env
 *.env.local
+.streamlit/credentials.toml
 
 # Data and Persistence
 data/uploads/*
 !data/uploads/.gitkeep
 !data/uploads/sample_transformer_paper.pdf
+!data/uploads/ground_lens_sample_technical_spec.pdf
 data/chroma_db/*
 !data/chroma_db/.gitkeep
 

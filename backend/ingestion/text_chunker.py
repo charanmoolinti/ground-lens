@@ -1,9 +1,10 @@
 """
 Module: text_chunker.py
 Description: Custom sliding-window text chunker with token/word overlap that preserves
-source document metadata, exact page numbers, and unique chunk IDs for evidence provenance.
+source document metadata, exact page numbers, doc_id, and unique chunk IDs for evidence provenance.
 """
 
+from __future__ import annotations
 from dataclasses import dataclass, field
 import re
 from typing import Any, Dict, List
@@ -18,6 +19,7 @@ class DocumentChunk:
     page_number: int
     text: str
     chunk_index: int
+    doc_id: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -49,9 +51,10 @@ class TextChunker:
         text = re.sub(r'\n{3,}', '\n\n', text)
         return text.strip()
 
-    def chunk_page(self, page: PDFPage, doc_name: str, start_chunk_idx: int = 0) -> List[DocumentChunk]:
+    def chunk_page(self, page: PDFPage, doc_name: str, doc_id: str = "", start_chunk_idx: int = 0) -> List[DocumentChunk]:
         """
         Splits a single PDFPage into overlapping chunks, maintaining strict page provenance.
+        Never merges text across different pages to prevent provenance corruption.
         """
         cleaned_text = self.clean_text(page.text)
         if not cleaned_text:
@@ -71,13 +74,13 @@ class TextChunker:
 
             # Avoid tiny trailing fragments that have negligible semantic context
             if len(chunk_words) < 15 and chunks:
-                # Append remainder to the previous chunk if it's too short
                 prev_chunk = chunks[-1]
                 prev_chunk.text = f"{prev_chunk.text} {chunk_text}"
                 break
 
             chunk_id = f"{doc_name}_p{page.page_number}_c{current_idx}"
             metadata = {
+                "doc_id": doc_id,
                 "doc_name": doc_name,
                 "page_number": page.page_number,
                 "chunk_index": current_idx,
@@ -87,6 +90,7 @@ class TextChunker:
             chunks.append(
                 DocumentChunk(
                     chunk_id=chunk_id,
+                    doc_id=doc_id,
                     doc_name=doc_name,
                     page_number=page.page_number,
                     text=chunk_text,
@@ -103,14 +107,19 @@ class TextChunker:
 
     def chunk_document(self, doc: PDFDocument) -> List[DocumentChunk]:
         """
-        Splits an entire PDFDocument page by page, ensuring chunks respect page boundaries
+        Splits an entire PDFDocument page by page, ensuring chunks strictly respect page boundaries
         so that retrieved evidence always points to the exact source page.
         """
         all_chunks: List[DocumentChunk] = []
         global_chunk_idx = 0
 
         for page in doc.pages:
-            page_chunks = self.chunk_page(page, doc.filename, start_chunk_idx=global_chunk_idx)
+            page_chunks = self.chunk_page(
+                page=page,
+                doc_name=doc.filename,
+                doc_id=doc.doc_id,
+                start_chunk_idx=global_chunk_idx,
+            )
             all_chunks.extend(page_chunks)
             global_chunk_idx += len(page_chunks)
 

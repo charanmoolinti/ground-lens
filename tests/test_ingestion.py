@@ -60,10 +60,44 @@ def test_pdf_loader(sample_pdf_path):
 
     assert doc.total_pages == 2
     assert not doc.is_empty
+    assert not doc.is_scanned
+    assert doc.doc_id != ""
     assert "GROUND LENS" in doc.pages[0].text
     assert "DeBERTa-v3" in doc.pages[1].text
     assert doc.pages[0].page_number == 1
     assert doc.pages[1].page_number == 2
+
+
+def test_scanned_pdf_detection():
+    """Generates an empty page PDF (simulating scanned image-only PDF without OCR)."""
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+
+    doc = pymupdf.open()
+    doc.new_page()  # Page without text
+    doc.save(str(tmp_path))
+    doc.close()
+
+    try:
+        loader = PDFLoader()
+        pdf_doc = loader.load_pdf(tmp_path)
+        assert pdf_doc.is_empty is True or pdf_doc.is_scanned is True
+        assert "scanned image-only PDF" in (pdf_doc.warning or "")
+
+        # Verify DocumentProcessor rejects scanned PDF without indexing empty chunks
+        processor = DocumentProcessor()
+        res = processor.process_pdf(tmp_path)
+        assert res.indexed_chunks == 0
+        assert res.is_scanned is True or res.total_chunks == 0
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink()
+
+
+def test_file_size_validation(sample_pdf_path):
+    loader = PDFLoader(max_file_size_bytes=10)  # artificially low limit: 10 bytes
+    with pytest.raises(ValueError, match="exceeds the maximum allowed limit"):
+        loader.load_pdf(sample_pdf_path)
 
 
 def test_text_chunker(sample_pdf_path):
@@ -78,6 +112,7 @@ def test_text_chunker(sample_pdf_path):
         assert chunk.doc_name == sample_pdf_path.name
         assert chunk.page_number in [1, 2]
         assert len(chunk.text) > 0
+        assert chunk.doc_id != ""
         assert "doc_name" in chunk.metadata
         assert "page_number" in chunk.metadata
 

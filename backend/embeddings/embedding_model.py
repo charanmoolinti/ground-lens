@@ -4,8 +4,27 @@ Description: Generates dense semantic vector embeddings for document passages an
 using sentence-transformers/all-MiniLM-L6-v2 with batch processing support and caching.
 """
 
+import os
+from pathlib import Path
 from typing import List, Union
 import numpy as np
+
+
+def _check_local_cache(model_name: str) -> bool:
+    slug = "models--" + model_name.replace("/", "--")
+    cache_hub = Path.home() / ".cache" / "huggingface" / "hub" / slug
+    return cache_hub.exists()
+
+
+if _check_local_cache("sentence-transformers/all-MiniLM-L6-v2"):
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+    try:
+        import huggingface_hub.constants as _hfc
+        _hfc.HF_HUB_OFFLINE = True
+    except ImportError:
+        pass
+
 from sentence_transformers import SentenceTransformer
 
 
@@ -23,7 +42,15 @@ class EmbeddingModel:
 
     def _init_model(self, model_name: str):
         self.model_name = model_name
-        self.model = SentenceTransformer(model_name)
+        is_cached = _check_local_cache(model_name)
+        if is_cached:
+            os.environ.setdefault("HF_HUB_OFFLINE", "1")
+            os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
+        try:
+            self.model = SentenceTransformer(model_name, local_files_only=is_cached)
+        except Exception:
+            self.model = SentenceTransformer(model_name)
         if hasattr(self.model, "get_embedding_dimension"):
             self.embedding_dim = self.model.get_embedding_dimension()
         else:

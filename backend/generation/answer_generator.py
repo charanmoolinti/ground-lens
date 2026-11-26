@@ -31,7 +31,10 @@ class AnswerGenerator:
         "2. Do NOT invent, assume, or extrapolate numbers, dates, benchmarks, or technical metrics.\n"
         "3. If the context does not contain sufficient information to answer the question or part of the question, "
         "explicitly state: 'The provided document does not contain information regarding [topic]'.\n"
-        "4. Be precise, concise, and technical."
+        "4. Be precise, concise, and technical.\n"
+        "5. When addressing multiple questions or numbered items, format each answer under a separate markdown "
+        "heading (e.g., '### 1. [Question Title]') followed by a blank line and the grounded answer paragraph. "
+        "Never mix or merge separate questions into one continuous paragraph."
     )
 
     def __init__(

@@ -2,94 +2,163 @@
 Module: assets.py
 Description: Enterprise SVG asset library and bespoke brand identity for GROUND LENS.
 Contains:
-- Bespoke Metallic Silver 'G' + Precision Optical Lens + Document Core logo system
+- Bespoke Optical Verification Lens Reticle + High-Contrast Brand Typography
+- Resilient HTML+SVG Brand Lockups guaranteed to render without layout collapsing
 - Lucide-style single-color SVG icons for navigation, status, telemetry, and actions
 - Zero emoji dependencies
-- Safe Streamlit HTML renderer to prevent CommonMark indented code-block parsing
+- Safe Streamlit HTML renderer injecting directly into DOM
 """
 
+from __future__ import annotations
 import re
 import streamlit as st
 
 
 def render_html(html_str: str) -> None:
     """
-    Safely renders custom HTML/SVG in Streamlit by stripping comments,
-    removing empty lines, and eliminating leading 4-space indentations
-    that would otherwise trigger CommonMark <pre><code> block formatting.
+    Safely renders custom HTML/SVG in Streamlit by injecting directly into the DOM
+    using markdown with unsafe_allow_html=True. Completely avoids iframe isolation
+    and prevents CommonMark indented <pre><code> code-block parsing by stripping
+    leading indentation from each line.
     """
     clean = re.sub(r"<!--.*?-->", "", html_str, flags=re.DOTALL)
-    lines = [line.strip() for line in clean.splitlines() if line.strip()]
-    compact = " ".join(lines)
+    stripped_lines = [line.strip() for line in clean.splitlines() if line.strip()]
+    compact = "\n".join(stripped_lines)
     st.markdown(compact, unsafe_allow_html=True)
 
 
 # ==============================================================================
-# BESPOKE BRAND LOGO ASSETS (COMPACT SINGLE-LINE SVGS WITHOUT COMMENTS)
+# BESPOKE BRAND LOGO & TAGLINE ASSETS
 # ==============================================================================
 
+def get_brand_lockup(size: str = "header") -> str:
+    """
+    Renders high-contrast, resilient brand lockup combining precision SVG vector lens
+    with crisp HTML typography and product tagline. Guaranteed never to collapse.
+    """
+    if size == "hero":
+        icon_size = 54
+        title_size = "1.85rem"
+        sub_size = "0.95rem"
+        margin_sub = "4px"
+    elif size == "sidebar":
+        icon_size = 36
+        title_size = "1.25rem"
+        sub_size = "0.72rem"
+        margin_sub = "2px"
+    else:  # header
+        icon_size = 42
+        title_size = "1.45rem"
+        sub_size = "0.76rem"
+        margin_sub = "3px"
+
+    icon_svg = (
+        f'<svg width="{icon_size}" height="{icon_size}" viewBox="0 0 56 56" fill="none" style="display:inline-block; vertical-align:middle; flex-shrink:0;">'
+        '<circle cx="28" cy="28" r="26" fill="#0D1420" stroke="#1E293B" stroke-width="1.5" />'
+        '<circle cx="28" cy="28" r="23" stroke="#263449" stroke-width="1.2" stroke-dasharray="3 4" />'
+        '<circle cx="28" cy="28" r="18" stroke="#00D9FF" stroke-width="2.5" fill="none" />'
+        '<line x1="28" y1="5" x2="28" y2="11" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+        '<line x1="28" y1="45" x2="28" y2="51" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+        '<line x1="5" y1="28" x2="11" y2="28" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+        '<line x1="45" y1="28" x2="51" y2="28" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+        '<line x1="6" y1="50" x2="50" y2="50" stroke="#00D9FF" stroke-width="2" stroke-linecap="round" opacity="0.8" />'
+        '<line x1="16" y1="50" x2="16" y2="54" stroke="#00D9FF" stroke-width="1.2" />'
+        '<line x1="40" y1="50" x2="40" y2="54" stroke="#8B5CF6" stroke-width="1.2" />'
+        '<circle cx="28" cy="28" r="5" fill="#080B12" stroke="#00D9FF" stroke-width="2" />'
+        '<circle cx="28" cy="28" r="2.2" fill="#00D9FF" />'
+        '<path d="M 23 28 L 26.5 32 L 35 22" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" />'
+        '</svg>'
+    )
+
+    return (
+        f'<div class="gl-brand-lockup" style="display:flex; align-items:center; gap:14px; user-select:none;">'
+        f'{icon_svg}'
+        '<div>'
+        f'<div style="font-family: -apple-system, BlinkMacSystemFont, \'Inter\', sans-serif; font-size:{title_size}; font-weight:800; letter-spacing:2px; color:#F1F5F9; line-height:1.1;">'
+        'GROUND<span style="color:#00D9FF; text-shadow:0 0 14px rgba(0,217,255,0.45);">LENS</span>'
+        '</div>'
+        f'<div style="font-family: -apple-system, BlinkMacSystemFont, \'Inter\', sans-serif; font-size:{sub_size}; font-weight:500; color:#94A3B8; letter-spacing:0.4px; margin-top:{margin_sub}; white-space:nowrap;">'
+        'Ground Every Answer. Trust Only the Evidence.'
+        '</div>'
+        '</div>'
+        '</div>'
+    )
+
+
 LOGO_FULL_SVG = (
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 64" fill="none" class="gl-logo-full" style="max-height: 48px; width: auto; display: block;">'
+    '<svg width="340" height="52" viewBox="0 0 340 52" fill="none" xmlns="http://www.w3.org/2000/svg" class="gl-logo-full" style="display:block;">'
     '<defs>'
-    '<linearGradient id="silverG" x1="0%" y1="0%" x2="100%" y2="100%">'
-    '<stop offset="0%" stop-color="#FFFFFF" />'
-    '<stop offset="45%" stop-color="#CBD5E1" />'
-    '<stop offset="70%" stop-color="#94A3B8" />'
-    '<stop offset="100%" stop-color="#64748B" />'
+    '<linearGradient id="glLensGradFull" x1="0%" y1="0%" x2="100%" y2="100%">'
+    '<stop offset="0%" stop-color="#00D9FF" />'
+    '<stop offset="100%" stop-color="#8B5CF6" />'
     '</linearGradient>'
-    '<linearGradient id="lensGlow" x1="0%" y1="0%" x2="100%" y2="100%">'
-    '<stop offset="0%" stop-color="#38BDF8" stop-opacity="0.8" />'
-    '<stop offset="100%" stop-color="#818CF8" stop-opacity="0.3" />'
-    '</linearGradient>'
-    '<filter id="electricGlow" x="-20%" y="-20%" width="140%" height="140%">'
-    '<feGaussianBlur stdDeviation="3" result="blur" />'
-    '<feComposite in="SourceGraphic" in2="blur" operator="over" />'
-    '</filter>'
     '</defs>'
-    '<g transform="translate(6, 6)">'
-    '<circle cx="26" cy="26" r="24" fill="url(#lensGlow)" opacity="0.25" filter="url(#electricGlow)" />'
-    '<circle cx="26" cy="26" r="23" stroke="#263449" stroke-width="1.5" stroke-dasharray="2 4" />'
-    '<path d="M 40 16 C 36 10, 28 8, 20 11 C 12 14, 7 22, 9 31 C 11 39, 19 45, 28 44 C 36 43, 42 37, 43 29 L 26 29" stroke="url(#silverG)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />'
-    '<circle cx="26" cy="26" r="14" stroke="#38BDF8" stroke-width="1.2" opacity="0.6" />'
-    '<line x1="26" y1="8" x2="26" y2="12" stroke="#38BDF8" stroke-width="1.5" />'
-    '<line x1="26" y1="40" x2="26" y2="44" stroke="#38BDF8" stroke-width="1.5" />'
-    '<line x1="8" y1="26" x2="12" y2="26" stroke="#38BDF8" stroke-width="1.5" />'
-    '<line x1="40" y1="26" x2="44" y2="26" stroke="#38BDF8" stroke-width="1.5" />'
-    '<rect x="22" y="20" width="8" height="11" rx="1" fill="#0D1420" stroke="#38BDF8" stroke-width="1.2" />'
-    '<line x1="24" y1="23" x2="28" y2="23" stroke="#CBD5E1" stroke-width="0.8" />'
-    '<line x1="24" y1="25.5" x2="28" y2="25.5" stroke="#CBD5E1" stroke-width="0.8" />'
-    '<line x1="24" y1="28" x2="27" y2="28" stroke="#38BDF8" stroke-width="0.8" />'
+    '<g transform="translate(4, 2)">'
+    '<circle cx="24" cy="24" r="22" stroke="#1E293B" stroke-width="1.5" />'
+    '<circle cx="24" cy="24" r="19" stroke="#263449" stroke-width="1.2" stroke-dasharray="3 3" />'
+    '<circle cx="24" cy="24" r="15" stroke="url(#glLensGradFull)" stroke-width="2.2" fill="none" />'
+    '<line x1="24" y1="5" x2="24" y2="10" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+    '<line x1="24" y1="38" x2="24" y2="43" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+    '<line x1="5" y1="24" x2="10" y2="24" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+    '<line x1="38" y1="24" x2="43" y2="24" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+    '<line x1="4" y1="42" x2="44" y2="42" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" opacity="0.8" />'
+    '<circle cx="24" cy="24" r="4.5" fill="#080B12" stroke="#00D9FF" stroke-width="1.8" />'
+    '<circle cx="24" cy="24" r="2" fill="#00D9FF" />'
+    '<path d="M 20 24 L 23 27 L 30 19" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />'
     '</g>'
-    '<g transform="translate(68, 14)">'
-    '<text x="0" y="22" font-family="\'Inter\', sans-serif" font-size="20" font-weight="800" letter-spacing="3" fill="#F1F5F9">'
-    'GROUND<tspan fill="#38BDF8">LENS</tspan>'
+    '<text x="60" y="27" font-family="-apple-system, BlinkMacSystemFont, \'Inter\', sans-serif" font-size="20" font-weight="800" letter-spacing="2" fill="#F1F5F9">'
+    'GROUND<tspan fill="#00D9FF">LENS</tspan>'
     '</text>'
-    '<text x="1" y="37" font-family="\'JetBrains Mono\', monospace" font-size="7.5" font-weight="600" letter-spacing="1.8" fill="#94A3B8">'
-    'AI DOCUMENT INTELLIGENCE'
+    '<text x="61" y="42" font-family="-apple-system, BlinkMacSystemFont, \'Inter\', sans-serif" font-size="8.5" font-weight="500" letter-spacing="0.4" fill="#94A3B8">'
+    'Ground Every Answer. Trust Only the Evidence.'
     '</text>'
-    '</g>'
     '</svg>'
 )
 
 LOGO_COMPACT_SVG = (
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" fill="none" class="gl-logo-compact" style="max-height: 40px; width: auto; display: block;">'
+    '<svg width="44" height="44" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" class="gl-logo-compact" style="display:block;">'
     '<defs>'
-    '<linearGradient id="silverGCompact" x1="0%" y1="0%" x2="100%" y2="100%">'
-    '<stop offset="0%" stop-color="#FFFFFF" />'
-    '<stop offset="50%" stop-color="#CBD5E1" />'
-    '<stop offset="100%" stop-color="#64748B" />'
+    '<linearGradient id="glLensCompactGrad" x1="0%" y1="0%" x2="100%" y2="100%">'
+    '<stop offset="0%" stop-color="#00D9FF" />'
+    '<stop offset="100%" stop-color="#8B5CF6" />'
     '</linearGradient>'
-    '<filter id="glowCompact" x="-20%" y="-20%" width="140%" height="140%">'
-    '<feGaussianBlur stdDeviation="2" result="blur" />'
-    '<feComposite in="SourceGraphic" in2="blur" operator="over" />'
-    '</filter>'
     '</defs>'
-    '<circle cx="26" cy="26" r="24" fill="#111A28" stroke="#263449" stroke-width="1.5" />'
-    '<circle cx="26" cy="26" r="20" stroke="#38BDF8" stroke-width="1" opacity="0.3" filter="url(#glowCompact)" />'
-    '<path d="M 38 17 C 34 11, 27 9, 20 12 C 13 15, 9 22, 10 30 C 12 37, 19 43, 27 42 C 34 41, 39 36, 40 29 L 26 29" stroke="url(#silverGCompact)" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" fill="none" />'
-    '<rect x="23" y="21" width="7" height="10" rx="1" fill="#080B12" stroke="#38BDF8" stroke-width="1.2" />'
-    '<line x1="25" y1="24" x2="28" y2="24" stroke="#CBD5E1" stroke-width="0.8" />'
-    '<line x1="25" y1="26.5" x2="28" y2="26.5" stroke="#CBD5E1" stroke-width="0.8" />'
+    '<circle cx="28" cy="28" r="26" fill="#0D1420" stroke="#1E293B" stroke-width="1.5" />'
+    '<circle cx="28" cy="28" r="18" stroke="url(#glLensCompactGrad)" stroke-width="2.2" fill="none" />'
+    '<line x1="6" y1="48" x2="50" y2="48" stroke="#00D9FF" stroke-width="1.5" stroke-linecap="round" opacity="0.7" />'
+    '<circle cx="28" cy="28" r="4" fill="#080B12" stroke="#00D9FF" stroke-width="1.8" />'
+    '<circle cx="28" cy="28" r="1.8" fill="#00D9FF" />'
+    '<path d="M 23 28 L 26.5 31.5 L 34 23" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />'
+    '</svg>'
+)
+
+LOGO_HERO_SVG = (
+    '<svg width="440" height="64" viewBox="0 0 440 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="gl-logo-hero" style="display:block;">'
+    '<defs>'
+    '<linearGradient id="glHeroLens" x1="0%" y1="0%" x2="100%" y2="100%">'
+    '<stop offset="0%" stop-color="#00D9FF" />'
+    '<stop offset="100%" stop-color="#8B5CF6" />'
+    '</linearGradient>'
+    '</defs>'
+    '<g transform="translate(6, 4)">'
+    '<circle cx="28" cy="28" r="26" stroke="#1E293B" stroke-width="1.6" />'
+    '<circle cx="28" cy="28" r="23" stroke="#263449" stroke-width="1.2" stroke-dasharray="3 4" />'
+    '<circle cx="28" cy="28" r="18" stroke="url(#glHeroLens)" stroke-width="2.5" fill="none" />'
+    '<line x1="28" y1="5" x2="28" y2="11" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+    '<line x1="28" y1="45" x2="28" y2="51" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+    '<line x1="5" y1="28" x2="11" y2="28" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+    '<line x1="45" y1="28" x2="51" y2="28" stroke="#00D9FF" stroke-width="1.8" stroke-linecap="round" />'
+    '<line x1="4" y1="50" x2="52" y2="50" stroke="#00D9FF" stroke-width="2" stroke-linecap="round" opacity="0.8" />'
+    '<circle cx="28" cy="28" r="5" fill="#080B12" stroke="#00D9FF" stroke-width="2" />'
+    '<circle cx="28" cy="28" r="2.2" fill="#00D9FF" />'
+    '<path d="M 23 28 L 26.5 32 L 35 22" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" />'
+    '</g>'
+    '<text x="72" y="32" font-family="-apple-system, BlinkMacSystemFont, \'Inter\', sans-serif" font-size="24" font-weight="800" letter-spacing="2.5" fill="#F1F5F9">'
+    'GROUND<tspan fill="#00D9FF">LENS</tspan>'
+    '</text>'
+    '<text x="73" y="50" font-family="-apple-system, BlinkMacSystemFont, \'Inter\', sans-serif" font-size="10" font-weight="500" letter-spacing="0.4" fill="#94A3B8">'
+    'Ground Every Answer. Trust Only the Evidence.'
+    '</text>'
     '</svg>'
 )
 

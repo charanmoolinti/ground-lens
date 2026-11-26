@@ -1,0 +1,19 @@
+[server]
+port = 8501
+address = "0.0.0.0"
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+enableWebsocketCompression = false
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"
+primaryColor = "#00D9FF"
+backgroundColor = "#080B12"
+secondaryBackgroundColor = "#101621"
+textColor = "#F1F5F9"
+font = "sans serif"
